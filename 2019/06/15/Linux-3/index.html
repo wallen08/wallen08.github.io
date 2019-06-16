@@ -6,16 +6,22 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>Archives | Wallen&#39;s Blog</title>
+  <title>Linux 编程基础（三）：Makefile的编写，gdb调试的基础知识 | Wallen&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="keywords" content="C++， 后台， 读书， OAM">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Wallen&#39;s Blog">
-<meta property="og:url" content="http://yoursite.com/archives/index.html">
+  <meta name="description" content="单元内容：  Makefile 的基本知识 Makefile 的五个例子 gdb 调试基础知识">
+<meta name="keywords" content="Linux编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 编程基础（三）：Makefile的编写，gdb调试的基础知识">
+<meta property="og:url" content="http://yoursite.com/2019/06/15/Linux-3/index.html">
 <meta property="og:site_name" content="Wallen&#39;s Blog">
+<meta property="og:description" content="单元内容：  Makefile 的基本知识 Makefile 的五个例子 gdb 调试基础知识">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://img-blog.csdn.net/20181002091509553">
+<meta property="og:updated_time" content="2019-06-16T13:29:54.433Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Wallen&#39;s Blog">
+<meta name="twitter:title" content="Linux 编程基础（三）：Makefile的编写，gdb调试的基础知识">
+<meta name="twitter:description" content="单元内容：  Makefile 的基本知识 Makefile 的五个例子 gdb 调试基础知识">
+<meta name="twitter:image" content="https://img-blog.csdn.net/20181002091509553">
   
     <link rel="alternative" href="/atom.xml" title="Wallen&#39;s Blog" type="application/atom+xml">
   
@@ -137,36 +143,116 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
+            <article id="post-Linux-3" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
   
+    <h1 class="article-title" itemprop="name">
+      Linux 编程基础（三）：Makefile的编写，gdb调试的基础知识
+    </h1>
   
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2019" class="archive-year">2019</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2019/06/15/Linux-3/" class="archive-article-date">
+
+        
+        <a href="/2019/06/15/Linux-3/" class="archive-article-date">
   	<time datetime="2019-06-15T03:11:05.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-15</time>
 </a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/06/15/Linux-3/">Linux 编程基础（三）：Makefile的编写，gdb调试的基础知识</a>
-    </h1>
-  
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>单元内容：</p>
+<ol>
+<li><a href="#1-makefile-的基本知识">Makefile 的基本知识</a></li>
+<li><a href="#2-makefile-的五个例子">Makefile 的五个例子</a></li>
+<li><a href="#3-gdb-调试基础知识">gdb 调试基础知识</a><a id="more"></a>
+</li>
+</ol>
+<hr>
+<h2 id="1-Makefile-的基本知识"><a href="#1-Makefile-的基本知识" class="headerlink" title="1. Makefile 的基本知识"></a>1. Makefile 的基本知识</h2><p>从<a href="https://blog.csdn.net/haoel/article/details/2886" target="_blank" rel="noopener">博客</a>中可以了解到：</p>
+<blockquote>
+<p>一个工程中的源文件不计其数，其按类型、功能、模块分别放在若干个目录中，makefile定义了一系列的规则来指定，哪些文件需要先编译，哪些文件需要后编译，哪些文件需要重新编译，甚至于进行更复杂的功能操作。</p>
+</blockquote>
+<p>Makefile 文件的命名一般是 <code>makefile</code> 或者 <code>Makefile</code>，其规则分为三个部分：目标、依赖、命令。形式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">目标：依赖</span><br><span class="line">（tab缩进）命令</span><br></pre></td></tr></table></figure>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">app：a.c b.c c.c</span><br><span class="line">    gcc a.c b.c c.c -o app</span><br></pre></td></tr></table></figure>
+<p>上面示例等同于在终端命令行输入：<code>gcc a.c b.c c.c -o app</code></p>
+<hr>
+<h2 id="2-Makefile-的五个例子"><a href="#2-Makefile-的五个例子" class="headerlink" title="2. Makefile 的五个例子"></a>2. Makefile 的五个例子</h2><h3 id="2-1-第一个例子"><a href="#2-1-第一个例子" class="headerlink" title="2.1 第一个例子"></a>2.1 第一个例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">app：main.c add.c sub.c mul.c</span><br><span class="line">    gcc main.c add.c sub.c mul.c -o app</span><br></pre></td></tr></table></figure>
+<p>缺点：效率低，修改一个文件，所有文件会被全部重新编译。</p>
+<h3 id="2-2-第二个例子"><a href="#2-2-第二个例子" class="headerlink" title="2.2 第二个例子"></a>2.2 第二个例子</h3><p>Makefile的工作原理如下图所示，简单来说就是首先检查依赖是否存在，检查规则是向下搜索下边的规则，如果有规则是用来生成查找的依赖的，执行规则中的命令；如果依赖存在，接着判断是否需要更新，更新规则是判断依赖的时间是否大于目标的时间，如果是，则更新。<br><img src="https://img-blog.csdn.net/20181002091509553" alt="cmake-gui"></p>
+<p>代码修改为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">app：main.o add.o sub.o mul.o</span><br><span class="line">    gcc main.o add.o sub.o mul.o -o app</span><br><span class="line"></span><br><span class="line">main.o:main.c</span><br><span class="line">    gcc main.c -c</span><br><span class="line"></span><br><span class="line">add.o:add.c</span><br><span class="line">    gcc add.c -c</span><br><span class="line"></span><br><span class="line">sub.o:sub.c</span><br><span class="line">    gcc sub.c -c</span><br><span class="line"></span><br><span class="line">mul.o:mul.c</span><br><span class="line">    gcc mul.c -c</span><br></pre></td></tr></table></figure>
+<p>缺点：代码冗余</p>
+<h3 id="2-3-第三个例子"><a href="#2-3-第三个例子" class="headerlink" title="2.3 第三个例子"></a>2.3 第三个例子</h3><p>Makefile 中可以自定义变量，例如<code>obj=a.o b.o c.o</code>、<code>obj=10</code>，变量的取值则为<code>aa=$(obj)</code>。Makefile 中有自带的变量，一般都是大写字母，如<code>CPPFLAGS</code>、<code>CC</code>。</p>
+<p>Makefile 中的三个自动变量：</p>
+<ul>
+<li><code>%@</code> : 规则中的目标</li>
+<li><code>%&lt;</code> : 规则中的第一个依赖</li>
+<li><code>%^</code> : 规则中的所有依赖</li>
+<li>自动变量只能在规则中的命令中使用</li>
+</ul>
+<p>模式匹配规则：<code>%.o:%.c</code></p>
+<p>代码修改为：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">obj = main.o add.o sub.o mul.o</span><br><span class="line">target = app</span><br><span class="line"><span class="meta">$</span>(target):$(obj)</span><br><span class="line">    gcc $(obj) -o $(target)</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span>.o:%.c</span><br><span class="line">    gcc -c $&lt; -o $@</span><br></pre></td></tr></table></figure>
+<p>缺点：可移植性比较差</p>
+<h3 id="2-4-第四个例子"><a href="#2-4-第四个例子" class="headerlink" title="2.4 第四个例子"></a>2.4 第四个例子</h3><p>wildcard 函数（扩展通配符）：可以使用<code>$(wildcard *.c)</code>来获取工作目录下的所有的<code>.c</code>文件列表。示例：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src = $(wildcard ./src/*.c)</span><br><span class="line">src = ./src/a.c ./src/b.c ./src/c.c</span><br></pre></td></tr></table></figure>
+<p>patsubst 函数（替换通配符）：可以使用<code>$(patsubst %.c,%.o,$(wildcard *.c))</code>将工作目录下的所有<code>.c</code>文件替换为<code>.o</code>文件。示例：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">obj = $(patsubst %.c,%.o,$(src))</span><br><span class="line">obj = ./src/a.o ./src/b.o ./src/c.o</span><br></pre></td></tr></table></figure>
+<p>代码修改为：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">src = $(wildcard ./*.c)</span><br><span class="line">obj = $(patsubst %.c,%.o,$(src))</span><br><span class="line">target = app</span><br><span class="line"><span class="meta">$</span>(target):$(obj)</span><br><span class="line">    gcc $^ -o $@</span><br><span class="line"></span><br><span class="line"><span class="meta">%</span>.o:%.c</span><br><span class="line">    gcc -c $&lt; -o $@</span><br></pre></td></tr></table></figure>
+<p>缺点：不能清理项目</p>
+<h3 id="2-5-第五个例子"><a href="#2-5-第五个例子" class="headerlink" title="2.5 第五个例子"></a>2.5 第五个例子</h3><ul>
+<li>让make 生成不是终极目标的目标 —— <code>make 目标名</code></li>
+<li>声明伪目标 —— <code>.PHONY: clean</code></li>
+<li><code>-f</code>：强制执行</li>
+<li>命令前加<code>-</code>可以忽略执行失败的命令，继续向下执行其余的命令</li>
+<li>一个清理项目的规则</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">clean:</span><br><span class="line">    rm *.o app</span><br></pre></td></tr></table></figure>
+<p>代码修改为：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">src = $(wildcard ./*.c)</span><br><span class="line">obj = $(patsubst %.c,%.o,$(src))</span><br><span class="line">target = app</span><br><span class="line"><span class="meta">$</span>(target):$(obj)</span><br><span class="line">    gcc $^ -o $@</span><br><span class="line"></span><br><span class="line"><span class="meta">%</span>.o:%.c</span><br><span class="line">    gcc -c $&lt; -o $@</span><br><span class="line"></span><br><span class="line">hello:</span><br><span class="line">    echo "hello, makefile"</span><br><span class="line"></span><br><span class="line">.PHONY:clean</span><br><span class="line">clean:</span><br><span class="line">    ~mkdir /abc</span><br><span class="line">    -rm $(obj) $(target) -f</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="3-gdb-调试基础知识"><a href="#3-gdb-调试基础知识" class="headerlink" title="3. gdb 调试基础知识"></a>3. gdb 调试基础知识</h2><h3 id="3-1-gdb-调试基本步骤"><a href="#3-1-gdb-调试基本步骤" class="headerlink" title="3.1 gdb 调试基本步骤"></a>3.1 gdb 调试基本步骤</h3><ol>
+<li>编译并构建程序，加上调试选项<code>-g</code>，e.g：<code>gcc a.c b.c c.c -o app -g</code></li>
+<li>用gdb 来运行程序，e.g：<code>gdb app</code></li>
+<li>使用gdb 命令来分析、调试程序</li>
+<li>退出gdb ，e.g：<code>quit -q</code></li>
+</ol>
+<h3 id="3-2-gdb-调试相关命令"><a href="#3-2-gdb-调试相关命令" class="headerlink" title="3.2 gdb 调试相关命令"></a>3.2 gdb 调试相关命令</h3><p><code>list</code>：查看代码，显示多行源代码</p>
+<ol>
+<li><code>l</code> 默认显示参数<code>listsize</code>设置的行数，可以通过<code>set listsize n</code>命令设置显示多少行，同时可以通过<code>show listsize</code>命令查看<code>listsize</code>的值。</li>
+<li><code>l 行号</code> 或 <code>l 函数名</code> 可以从指定行号或者函数开始显示代码。</li>
+<li><code>l 文件名：行号</code> 或 <code>l 文件名：函数名</code> 是针对不是当前文件，显示其他文件的代码。</li>
+</ol>
+<p><code>break</code>：断点操作，设置断点</p>
+<ol>
+<li><code>b 行号</code>、<code>b 函数名</code>、<code>b 文件名：行号</code>、<code>b 文件名：函数名</code> 在指定行号位置或函数处设置断点。</li>
+<li><code>info(i) b</code> 查看断点信息。</li>
+<li><code>d num</code> 删除断点编号为num 的断点，<code>d num1 num2</code> 删除num1 和num2 两个断点，<code>d num1-num6</code> 删除num1 到num6 编号之间的断点。</li>
+<li><code>dis num</code> 设置断点无效，<code>ena num</code> 设置断点生效，<code>b 行号 if 变量==var</code> 设置条件断点。</li>
+</ol>
+<p>其他命令：</p>
+<ul>
+<li><code>start(st)</code> 运行一行停止，<code>run(r)</code> 停在第一个断点的位置</li>
+<li><code>p 变量名</code> 打印变量的值，<code>ptype 变量名</code> 打印变量的类型</li>
+<li><code>next(n)</code> 向下单步调试、不会进入函数体，<code>step(s)</code> 向下单步调试、会进入到函数体内部</li>
+<li><code>finish</code> 跳出函数体，如果出不去，函数体中的循环有断点，<code>continue(c)</code> 继续运行gdb ，停止下一个断点的位置。</li>
+<li><code>display(disp) 变量名</code> 变量的自动显示，<code>undisplay num</code> 取消变量的自动显示，需要<code>info display</code> 命令得到变量的号码num 。</li>
+<li><code>until</code> 从循环体中直接跳出、循环体中不能有断点，<code>set var 变量名=value</code> 直接设置变量等于某一个值</li>
+</ul>
 
-        <div class="article-info info-on-right">
-          
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -178,95 +264,119 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2019/06/15/Linux-3/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2019/06/01/Linux-2/" class="archive-article-date">
-  	<time datetime="2019-06-01T12:57:09.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-01</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2019/06/01/Linux-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux 编程基础（二）：vim，gcc相关操作以及静态库和动态库的制作和使用</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/06/01/Linux-2/">Linux 编程基础（二）：vim，gcc相关操作以及静态库和动态库的制作和使用</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Linux编程</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
+        
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Makefile-的基本知识"><span class="toc-number">1.</span> <span class="toc-text">1. Makefile 的基本知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Makefile-的五个例子"><span class="toc-number">2.</span> <span class="toc-text">2. Makefile 的五个例子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-第一个例子"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 第一个例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-第二个例子"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 第二个例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-第三个例子"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 第三个例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-第四个例子"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 第四个例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-第五个例子"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 第五个例子</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-gdb-调试基础知识"><span class="toc-number">3.</span> <span class="toc-text">3. gdb 调试基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-gdb-调试基本步骤"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 gdb 调试基本步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-gdb-调试相关命令"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 gdb 调试相关命令</span></a></li></ol></li></ol>
+                    </div>
+                </span>
+            </div>
         </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
+        
+    </div>
+</aside>
+
+
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2019/05/28/Linux-1/" class="archive-article-date">
-  	<time datetime="2019-05-28T13:30:45.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-05-28</time>
-</a>
-        </div>
-    	 
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/05/28/Linux-1/">Linux 编程基础（一）：常用shell操作或文件目录相关命令</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Linux编程</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
+
+  
 
 
           </div>
@@ -289,8 +399,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
