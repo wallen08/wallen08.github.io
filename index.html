@@ -139,6 +139,93 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Network-3" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/08/15/Network-3/">Linux 网络编程（二）：I/O 多路复用 select 和 poll</a>
+    </h1>
+  
+
+        
+        <a href="/2019/08/15/Network-3/" class="archive-article-date">
+  	<time datetime="2019-08-15T09:23:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>单元内容：</p>
+<ul>
+<li><a href="#1-io-%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8">1. I/O 多路复用</a></li>
+<li><a href="#2-select">2. select</a><ul>
+<li><a href="#21-select-%e5%87%bd%e6%95%b0">2.1 select 函数</a></li>
+<li><a href="#22-select-%e7%a4%ba%e4%be%8b">2.2 select 示例</a></li>
+</ul>
+</li>
+<li><a href="#3-poll">3. poll</a><ul>
+<li><a href="#31-poll-%e5%87%bd%e6%95%b0">3.1 poll 函数</a></li>
+<li><a href="#32-poll-%e7%a4%ba%e4%be%8b">3.2 poll 示例</a></li>
+</ul>
+</li>
+</ul>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Linux网络编程</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/08/15/Network-3/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Network-2" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -163,7 +250,7 @@
 <ol>
 <li><a href="#1-TCP-三握四挥">TCP 三握四挥</a></li>
 <li><a href="#2-多进程并发服务器">多进程并发服务器</a></li>
-<li><a href="#2-多线程并发服务器">多线程并发服务器</a></li>
+<li><a href="#3-多线程并发服务器">多线程并发服务器</a></li>
 </ol>
         
       
@@ -815,85 +902,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2019/06/15/Linux-3/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Linux-2" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/06/01/Linux-2/">Linux 编程基础（二）：vim，gcc相关操作以及静态库和动态库的制作和使用</a>
-    </h1>
-  
-
-        
-        <a href="/2019/06/01/Linux-2/" class="archive-article-date">
-  	<time datetime="2019-06-01T12:57:09.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>单元内容：</p>
-<ol>
-<li><a href="#1-软件的安装和卸载">软件的安装和卸载</a></li>
-<li><a href="#2-vim-相关知识">vim 相关知识</a></li>
-<li><a href="#3-gcc-相关知识">gcc 相关知识</a></li>
-<li><a href="#4-静态库和动态库的制作和使用">静态库和动态库的制作和使用</a>
-        
-      
-
-      
-    </li></ol></div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Linux编程基础</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2019/06/01/Linux-2/">展开全文 >></a>
         </p>
       
 

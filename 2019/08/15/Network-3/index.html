@@ -6,16 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>Archives | Wallen&#39;s Blog</title>
+  <title>Linux 网络编程（二）：I/O 多路复用 select 和 poll | Wallen&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="keywords" content="C++， 后台， 读书， OAM">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Wallen&#39;s Blog">
-<meta property="og:url" content="http://yoursite.com/archives/page/2/index.html">
+  <meta name="description" content="单元内容：  1. I/O 多路复用 2. select 2.1 select 函数 2.2 select 示例   3. poll 3.1 poll 函数 3.2 poll 示例">
+<meta name="keywords" content="Linux网络编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 网络编程（二）：I&#x2F;O 多路复用 select 和 poll">
+<meta property="og:url" content="http://yoursite.com/2019/08/15/Network-3/index.html">
 <meta property="og:site_name" content="Wallen&#39;s Blog">
+<meta property="og:description" content="单元内容：  1. I/O 多路复用 2. select 2.1 select 函数 2.2 select 示例   3. poll 3.1 poll 函数 3.2 poll 示例">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-15T12:18:45.743Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Wallen&#39;s Blog">
+<meta name="twitter:title" content="Linux 网络编程（二）：I&#x2F;O 多路复用 select 和 poll">
+<meta name="twitter:description" content="单元内容：  1. I/O 多路复用 2. select 2.1 select 函数 2.2 select 示例   3. poll 3.1 poll 函数 3.2 poll 示例">
   
     <link rel="alternative" href="/atom.xml" title="Wallen&#39;s Blog" type="application/atom+xml">
   
@@ -137,101 +141,216 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-Network-3" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2019" class="archive-year">2019</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2019/06/01/Linux-2/" class="archive-article-date">
-  	<time datetime="2019-06-01T12:57:09.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-01</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/06/01/Linux-2/">Linux 编程基础（二）：vim，gcc相关操作以及静态库和动态库的制作和使用</a>
+    <h1 class="article-title" itemprop="name">
+      Linux 网络编程（二）：I/O 多路复用 select 和 poll
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2019/08/15/Network-3/" class="archive-article-date">
+  	<time datetime="2019-08-15T09:23:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>单元内容：</p>
+<ul>
+<li><a href="#1-io-%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8">1. I/O 多路复用</a></li>
+<li><a href="#2-select">2. select</a><ul>
+<li><a href="#21-select-%e5%87%bd%e6%95%b0">2.1 select 函数</a></li>
+<li><a href="#22-select-%e7%a4%ba%e4%be%8b">2.2 select 示例</a></li>
+</ul>
+</li>
+<li><a href="#3-poll">3. poll</a><ul>
+<li><a href="#31-poll-%e5%87%bd%e6%95%b0">3.1 poll 函数</a></li>
+<li><a href="#32-poll-%e7%a4%ba%e4%be%8b">3.2 poll 示例</a></li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<hr>
+<h2 id="1-I-O-多路复用"><a href="#1-I-O-多路复用" class="headerlink" title="1. I/O 多路复用"></a>1. I/O 多路复用</h2><p>I/O 多路复用技术：先构造一张有关文件描述符的列表，将要监听的文件描述符添加到该表中，然后调用一个函数（select，poll），监听该表中的文件描述符，知道这些描述符表中的一个进行 I/O 操作时，该函数才返回。需要注意的是，该函数为阻塞函数，函数对文件描述符的检测操作是由内核完成的。在返回时，它告诉进程有多少（哪些）描述符要进行 I/O 操作。</p>
+<p>相比于多线程和多进程，I/O 多路复用是在单一进程的上下文中的，当有多个并发连接请求时，多线程或者多进程模型需要为每个连接创建一个线程或者进程，而这些进程或者线程中大部分是被阻塞起来的。由于 CPU 的核数一般都不大，比如 4 个核要跑 1000 个线程，那么每个线程的时间槽非常短，而线程切换非常频繁。然而使用 I/O 多路复用时，处理多个连接只需要 1 个线程监控就绪状态，对就绪的每个连接开一个线程处理（由线程池支持）就可以了，这样需要的线程数大大减少，减少了内存开销和上下文切换的 CPU 开销。</p>
+<hr>
+<h2 id="2-select"><a href="#2-select" class="headerlink" title="2. select"></a>2. select</h2><h3 id="2-1-select-函数"><a href="#2-1-select-函数" class="headerlink" title="2.1 select 函数"></a>2.1 select 函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)</span></span>;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>nfds: 要检测的文件描述符中最大的 fd+1，若不知道可以写 1024</li>
+<li>readfds: 读集合</li>
+<li>writefds: 写集合</li>
+<li>exceptfds：异常集合</li>
+<li>timeout:<ul>
+<li>NULL: 永久阻塞，当检测到 fd 变化的时候返回</li>
+<li>struct timeval a：等待时间 a，这个时间内，需要监视的描述符没有事件发⽣则函数返回，返回值为0</li>
+</ul>
+</li>
+</ol>
+<p>文件描述符操作函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 清空文件描述符集</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_ZERO</span><span class="params">(fd_set *<span class="built_in">set</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从集合中删除某一项</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_CLR</span><span class="params">(<span class="keyword">int</span> fd, fd_set *<span class="built_in">set</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将某个文件描述符添加到集合</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_SET</span><span class="params">(<span class="keyword">int</span> fd, fd_set *<span class="built_in">set</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断某个文件描述符是否在集合中</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_ISSET</span><span class="params">(<span class="keyword">int</span> fd, fd_set *<span class="built_in">set</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>优点：</p>
+<ol>
+<li>select 的可移植性好，在某些 unix 下不支持 poll.</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>单个进程可监视的 fd 数量被限制，默认是1024。</li>
+<li>需要维护一个用来存放大量 fd 的数据结构，这样会使得用户空间和内核空间在传递该结构时复制开销大。</li>
+<li>对 fd 进行扫描时是线性扫描，fd 剧增后，IO 效率降低，每次调用都对 fd 进行线性扫描遍历，随着 fd 的增加会造成遍历速度慢的问题。</li>
+</ol>
+<h3 id="2-2-select-示例"><a href="#2-2-select-示例" class="headerlink" title="2.2 select 示例"></a>2.2 select 示例</h3><ol>
+<li>select 能监听的文件描述符个数受限于 FD_SETSIZE，一般为 1024，单纯改变进程打开的文件描述符个数并不能改变select 监听文件个数</li>
+<li>解决 1024 以下客户端时使用 select 是很合适的，但如果链接客户端过多，select 采用的是轮询模型，会大大降低服务器响应效率</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SERV_PORT 8989</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> lfd, cfd;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">serv_addr</span>, <span class="title">clien_addr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> serv_len, clien_len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建套接字</span></span><br><span class="line">    lfd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="comment">// 初始化服务器 sockaddr_in</span></span><br><span class="line">    <span class="built_in">memset</span>(&amp;serv_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(serv_addr));</span><br><span class="line">    serv_addr.sin_family = AF_INET;                   <span class="comment">// 地址族</span></span><br><span class="line">    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);    <span class="comment">// 监听本机所有的 IP</span></span><br><span class="line">    serv_addr.sin_port = htons(SERV_PORT);            <span class="comment">// 设置端口</span></span><br><span class="line">    serv_len = <span class="keyword">sizeof</span>(serv_addr);</span><br><span class="line">    <span class="comment">// 绑定IP和端口</span></span><br><span class="line">    bind(lfd, (struct sockaddr*)&amp;serv_addr, serv_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置同时监听的最大个数</span></span><br><span class="line">    listen(lfd, <span class="number">36</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Start accept ......\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ret;</span><br><span class="line">    <span class="keyword">int</span> maxfd = lfd;</span><br><span class="line">    <span class="comment">// reads 实时更新，temps 内核检测</span></span><br><span class="line">    fd_set reads, temps;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*===============================================*/</span></span><br><span class="line">    <span class="comment">// 记录要检测的文件描述符的数组</span></span><br><span class="line">    <span class="keyword">int</span> allfd[FD_SETSIZE];   <span class="comment">// 1024</span></span><br><span class="line">    <span class="comment">// 记录数组中最后一个元素的下标</span></span><br><span class="line">    <span class="keyword">int</span> last_index = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 初始化数组</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; FD_SETSIZE; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        allfd[i] = <span class="number">-1</span>;  <span class="comment">// 无效文件描述符值</span></span><br><span class="line">    &#125;</span><br><span class="line">    allfd[<span class="number">0</span>] = lfd;     <span class="comment">// 监听的文件描述符添加到数组中</span></span><br><span class="line">    <span class="comment">/*===============================================*/</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化监听的读集合</span></span><br><span class="line">    FD_ZERO(&amp;reads);</span><br><span class="line">    FD_SET(lfd, &amp;reads);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 每次都需要更新，否则 select 不会重新检测</span></span><br><span class="line">        temps = reads;</span><br><span class="line">        ret = select(maxfd+<span class="number">1</span>, &amp;temps, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">if</span>(ret == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            perror(<span class="string">"select error"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">char</span> bufip[<span class="number">64</span>];</span><br><span class="line">        <span class="comment">// 判断是否有新连接</span></span><br><span class="line">        <span class="keyword">if</span>(FD_ISSET(lfd, &amp;temps))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// 接受连接请求</span></span><br><span class="line">            clien_len = <span class="keyword">sizeof</span>(clien_len);</span><br><span class="line">            <span class="keyword">int</span> cfd = accept(lfd, (struct sockaddr*)&amp;clien_addr, &amp;clien_len);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"client ip: %s, port: %d\n"</span>,</span><br><span class="line">                   inet_ntop(AF_INET, &amp;clien_addr.sin_addr.s_addr, bufip, <span class="keyword">sizeof</span>(bufip)),</span><br><span class="line">                   ntohs(clien_addr.sin_port));</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 文件描述符放入检测集合</span></span><br><span class="line">            FD_SET(cfd, &amp;reads);</span><br><span class="line">            <span class="comment">// 更新最大文件描述符</span></span><br><span class="line">            maxfd = maxfd &lt; cfd ? cfd : maxfd;</span><br><span class="line">            <span class="comment">// cfd 添加到检测数组中</span></span><br><span class="line">            <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; FD_SETSIZE; ++i)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">if</span>(allfd[i] == <span class="number">-1</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    allfd[i] = cfd;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 更新数组最后一个有效值下标</span></span><br><span class="line">            last_index = last_index &lt; i ? i : last_index;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历检测的文件描述符是否有读操作</span></span><br><span class="line">        <span class="keyword">for</span>(i = lfd + <span class="number">1</span>; i &lt;= maxfd; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(FD_ISSET(i, &amp;temps))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// 读数据</span></span><br><span class="line">                <span class="keyword">char</span> buf[<span class="number">1024</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">                <span class="keyword">int</span> len = read(i, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">                <span class="keyword">if</span>(len  == <span class="number">-1</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    perror(<span class="string">"read error"</span>);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>(len == <span class="number">0</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="comment">// 对方关闭了连接</span></span><br><span class="line">                    FD_CLR(i, &amp;reads);</span><br><span class="line">                    close(i);</span><br><span class="line">                    <span class="keyword">if</span>(maxfd == i)</span><br><span class="line">                    &#123;</span><br><span class="line">                        maxfd--;</span><br><span class="line">                    &#125;</span><br><span class="line">                    allfd[i] = <span class="number">-1</span>;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"对方已经关闭了连接。。。。。。\n"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"read buf = %s\n"</span>, buf);</span><br><span class="line">                    <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; len; ++j)</span><br><span class="line">                    &#123;</span><br><span class="line">                        buf[j] = <span class="built_in">toupper</span>(buf[j]);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"--buf toupper: %s\n"</span>, buf);</span><br><span class="line">                    write(i, buf, <span class="built_in">strlen</span>(buf)+<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    close(lfd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="3-poll"><a href="#3-poll" class="headerlink" title="3. poll"></a>3. poll</h2><h3 id="3-1-poll-函数"><a href="#3-1-poll-函数" class="headerlink" title="3.1 poll 函数"></a>3.1 poll 函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd *fds, <span class="keyword">unsigned</span> <span class="keyword">int</span> nfds, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> fd; <span class="comment">// 文件描述符</span></span><br><span class="line">    <span class="keyword">short</span> events; <span class="comment">// 等待的事件</span></span><br><span class="line">    <span class="keyword">short</span> revents; <span class="comment">// 实际发生的事件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>fd : 需要关心的文件描述符</li>
+<li>events : 需要关心的事件,合法事件如下<br>POLLIN　　  　　  　有数据可读。<br>POLLRDNORM　　  有普通数据可读。<br>POLLRDBAND　　  有优先数据可读。<br>POLLPRI　　  　　有紧迫数据可读。<br>POLLOUT　　  　　  写数据不会导致阻塞。<br>POLLWRNORM   　　  写普通数据不会导致阻塞。<br>POLLWRBAND   　　  写优先数据不会导致阻塞。<br>POLLMSGSIGPOLL   　消息可用。</li>
+<li>revents : 关心的事件就绪时 revents 会被设置成上述对应的事件，除此之外还可能设置为如下内容。<br> POLLER　　  指定的文件描述符发生错误。<br> POLLHUP　　 指定的文件描述符挂起事件。<br> POLLNVAL　　指定的文件描述符非法。</li>
+<li>fds : 对应上述介绍的结构体指针</li>
+<li>nfds : 标记数组中结构体元素的总个数</li>
+<li>timeout : 超时时间，等于0表示非阻塞式等待，小于0表示阻塞式等待，大于0表示等待的时间</li>
+</ol>
+<h3 id="3-2-poll-示例"><a href="#3-2-poll-示例" class="headerlink" title="3.2 poll 示例"></a>3.2 poll 示例</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SERV_PORT 8989</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> lfd, cfd;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">serv_addr</span>, <span class="title">clien_addr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> serv_len, clien_len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建套接字</span></span><br><span class="line">    lfd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="comment">// 初始化服务器 sockaddr_in </span></span><br><span class="line">    <span class="built_in">memset</span>(&amp;serv_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(serv_addr));</span><br><span class="line">    serv_addr.sin_family = AF_INET;                   <span class="comment">// 地址族</span></span><br><span class="line">    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);    <span class="comment">// 监听本机所有的IP</span></span><br><span class="line">    serv_addr.sin_port = htons(SERV_PORT);            <span class="comment">// 设置端口</span></span><br><span class="line">    serv_len = <span class="keyword">sizeof</span>(serv_addr);</span><br><span class="line">    <span class="comment">// 绑定IP和端口</span></span><br><span class="line">    bind(lfd, (struct sockaddr*)&amp;serv_addr, serv_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置同时监听的最大个数</span></span><br><span class="line">    listen(lfd, <span class="number">36</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Start accept ......\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// poll结构体</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> <span class="title">allfd</span>[1024];</span></span><br><span class="line">    <span class="keyword">int</span> max_index = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// init</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">1024</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        allfd[i].fd = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    allfd[<span class="number">0</span>].fd = lfd;</span><br><span class="line">    allfd[<span class="number">0</span>].events = POLLIN;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> ret = poll(allfd, max_index+<span class="number">1</span>, <span class="number">-1</span>); </span><br><span class="line">        <span class="keyword">if</span>(ret == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            perror(<span class="string">"poll error"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 判断是否有连接请求</span></span><br><span class="line">        <span class="keyword">if</span>(allfd[<span class="number">0</span>].revents &amp; POLLIN)</span><br><span class="line">        &#123;</span><br><span class="line">            clien_len = <span class="keyword">sizeof</span>(clien_addr);</span><br><span class="line">            <span class="comment">// 接受连接请求</span></span><br><span class="line">            <span class="keyword">int</span> cfd = accept(lfd, (struct sockaddr*)&amp;clien_addr, &amp;clien_len);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"============\n"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// cfd添加到ｐｏｌｌ数组</span></span><br><span class="line">            <span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;<span class="number">1024</span>; ++i)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">if</span>(allfd[i].fd == <span class="number">-1</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    allfd[i].fd = cfd;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 更新最后一个元素的下标</span></span><br><span class="line">            max_index = max_index &lt; i ? i : max_index;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历数组</span></span><br><span class="line">        <span class="keyword">for</span>(i=<span class="number">1</span>; i&lt;=max_index; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">int</span> fd = allfd[i].fd;</span><br><span class="line">            <span class="keyword">if</span>(fd == <span class="number">-1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(allfd[i].revents &amp; POLLIN)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// 接受数据</span></span><br><span class="line">                <span class="keyword">char</span> buf[<span class="number">1024</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">                <span class="keyword">int</span> len = recv(fd, buf, <span class="keyword">sizeof</span>(buf), <span class="number">0</span>);</span><br><span class="line">                <span class="keyword">if</span>(len == <span class="number">-1</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    perror(<span class="string">"recv error"</span>);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>(len == <span class="number">0</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    allfd[i].fd = <span class="number">-1</span>;</span><br><span class="line">                    close(fd);</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"客户端已经主动断开连接。。。\n"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"recv buf = %s\n"</span>, buf);</span><br><span class="line">                    <span class="keyword">for</span>(<span class="keyword">int</span> k=<span class="number">0</span>; k&lt;len; ++k)</span><br><span class="line">                    &#123;</span><br><span class="line">                        buf[k] = <span class="built_in">toupper</span>(buf[k]);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"buf toupper: %s\n"</span>, buf);</span><br><span class="line">                    send(fd, buf, <span class="built_in">strlen</span>(buf)+<span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    close(lfd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Linux编程基础</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Linux网络编程</a>
         		</li>
       		
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2019/08/15/Network-3/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2019/05/28/Linux-1/" class="archive-article-date">
-  	<time datetime="2019-05-28T13:30:45.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-05-28</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2019/08/11/Network-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux 网络编程（二）：TCP 三握四挥，多进程并发和多线程并发服务器</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/05/28/Linux-1/">Linux 编程基础（一）：常用shell操作或文件目录相关命令</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Linux编程基础</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
+        
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-I-O-多路复用"><span class="toc-number">1.</span> <span class="toc-text">1. I/O 多路复用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-select"><span class="toc-number">2.</span> <span class="toc-text">2. select</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-select-函数"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 select 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-select-示例"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 select 示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-poll"><span class="toc-number">3.</span> <span class="toc-text">3. poll</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-poll-函数"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 poll 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-poll-示例"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 poll 示例</span></a></li></ol></li></ol>
+                    </div>
+                </span>
+            </div>
         </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
+        
+    </div>
+</aside>
+
+
+
   
   
-    </div></section>
   
 
-    
-    <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/archives/">&laquo; Prev</a><a class="page-number" href="/archives/">1</a><span class="page-number current">2</span>
-    </nav>
+  
+
+  
+
   
 
 
@@ -255,8 +374,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
